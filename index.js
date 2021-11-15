@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const app = express()
 app.use(cors())
+app.use(express.json())
 
 
 const mongoUsername = process.env.MONGO_USERNAME
@@ -22,11 +23,17 @@ mongoose.connect(uri)
 })
 
 app.post('/api/register', async (req, res) => {
+    console.log(req.body)
     
 })
 
 app.get('/',(req, res) => {
     res.send('<h1>Coming soon...</h1>')
+})
+
+app.get('/api/register', async (req, res) => {
+    
+    res.json(req.body)
 })
 
 const PORT = 5000
