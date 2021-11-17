@@ -28,7 +28,7 @@ mongoose.connect(uri,{
 })
 
 
-app.post('/api/change-password', async (req,res) => {
+app.post('/api/change-password', authenticateJWT, async (req,res) => {
     const { token, newpassword } = req.body
     
     try{

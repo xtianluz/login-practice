@@ -8,7 +8,6 @@ module.exports = (req, res, next) => {
     const decodedToken = jwt.verify(token, jwt_secret)
     
     if (decodedToken) {
-      
       next()
     }
   } catch {
