@@ -1,13 +1,14 @@
 const express = require('express')
 const cors = require('cors')
-const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const User = require('./model/user')
 
-require('dotenv').config();
+const authenticateJWT = require('./middleware/authorization/auth')
+
+require('dotenv').config()
 
 const app = express()
 app.use(cors())
@@ -27,12 +28,27 @@ mongoose.connect(uri,{
 })
 
 
-app.post('/api/change-password', (req,res) => {
-    const { token } = req.body
-    const user = jwt.verify(token, JWT_SECRET)
+app.post('/api/change-password', async (req,res) => {
+    const { token, newpassword } = req.body
     
-    console.log(user)
-    res.json({status: 'ok'})
+    try{
+        const user = jwt.verify(token, JWT_SECRET)
+
+        const _id = user.id
+        const hashedPassword = await bcrypt.hash(newpassword, 10)
+
+        await User.updateOne(
+            { _id },
+            {
+                $set: { password: hashedPassword }
+            }
+        )
+        console.log(user)
+        res.json({status: 'ok'})
+    } catch(error){
+        res.json( { status: 'error', error: 'error' })
+    }
+    
 })
 
 
@@ -54,6 +70,7 @@ app.post('/api/login', async (req,res) => {
         },
             JWT_SECRET
         )
+        console.log(token)
         return res.json({status: 'ok', data: token})
     }
     res.json({status: 'error', error: 'Invalid username/password' })
@@ -85,9 +102,10 @@ app.get('/',(req, res) => {
     res.send('<h1>Coming soon...</h1>')
 })
 
-app.get('/api/register', async (req, res) => {
-    
-    res.json(req.body)
+app.get('/api/users', authenticateJWT, async (req, res) => {
+    const content = await User.find({})
+    res.send(content)
+    // res.json(req.body)
 })
 
 const PORT = 5000
